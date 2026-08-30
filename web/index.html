@@ -410,6 +410,34 @@
         .input-group .form-control {
             border-radius: 0 4px 4px 0;
         }
+        .url-valid {
+            border-color: #28a745 !important;
+        }
+        .url-invalid {
+            border-color: #dc3545 !important;
+        }
+        .url-checking {
+            border-color: #ffc107 !important;
+        }
+        .url-status {
+            font-size: 0.8rem;
+            margin-top: 4px;
+        }
+        .url-status.valid {
+            color: #28a745;
+        }
+        .url-status.invalid {
+            color: #dc3545;
+        }
+        .url-status.checking {
+            color: #ffc107;
+        }
+        .btn-check-url {
+            white-space: nowrap;
+        }
+        .btn-paste-url {
+            white-space: nowrap;
+        }
     </style>
 </head>
 <body>
@@ -527,7 +555,16 @@
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Stream URL *</label>
-                    <input type="text" class="form-control" id="stationUrlInput" placeholder="https://example.com/stream.mp3">
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="stationUrlInput" placeholder="https://example.com/stream.mp3">
+                        <button class="btn btn-outline-secondary btn-paste-url" type="button" id="pasteUrlBtn" title="Paste from clipboard">
+                            <i class="bi bi-clipboard"></i> Paste
+                        </button>
+                        <button class="btn btn-outline-secondary btn-check-url" type="button" id="checkUrlBtn">
+                            <i class="bi bi-check-circle"></i> Check
+                        </button>
+                    </div>
+                    <div id="urlStatus" class="url-status"></div>
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Genre *</label>
@@ -584,6 +621,22 @@
         const CACHE_KEY_LANGUAGES = 'radiowave_languages';
         const CACHE_TTL = 7 * 24 * 60 * 60 * 1000;
 
+        // ---- Session management ----
+        function getOrCreateSessionId() {
+            let sessionId = localStorage.getItem('radioSession');
+            if (!sessionId) {
+                sessionId = 'session-' + Date.now() + '-' + Math.random().toString(36).substring(2, 8);
+                localStorage.setItem('radioSession', sessionId);
+                console.log('🆕 New session created:', sessionId);
+            } else {
+                console.log('♻️ Existing session found:', sessionId);
+            }
+            return sessionId;
+        }
+
+        // Create session immediately when script loads
+        const SESSION_ID = getOrCreateSessionId();
+
         // ---- state ----
         let currentStationId = null;
         let audioElement = null;
@@ -599,6 +652,11 @@
         let searchPageNum = 0;
         let searchResults = [];
         let searchTotal = 0;
+
+        // URL validation state - track the validated URL
+        let validatedUrl = null;
+        let urlValid = false;
+        let urlChecking = false;
 
         const LIMIT = 12;
         let genres = [];
@@ -637,6 +695,9 @@
         const stopBtn = document.getElementById('stopBtn');
         const volumeSlider = document.getElementById('volumeSlider');
         const submitStationBtn = document.getElementById('submitStationBtn');
+        const checkUrlBtn = document.getElementById('checkUrlBtn');
+        const pasteUrlBtn = document.getElementById('pasteUrlBtn');
+        const urlStatus = document.getElementById('urlStatus');
 
         // Add station modal fields
         const stationNameInput = document.getElementById('stationNameInput');
@@ -680,6 +741,118 @@
         function showToast(msg) {
             toastMessage.textContent = msg;
             toast.show();
+        }
+
+        // ---- Paste functionality ----
+        async function pasteFromClipboard() {
+            try {
+                const text = await navigator.clipboard.readText();
+                if (text) {
+                    stationUrlInput.value = text;
+                    // Reset validation state when pasting
+                    resetValidationState();
+                    // Trigger input event to auto-check
+                    stationUrlInput.dispatchEvent(new Event('input'));
+                    showToast('URL pasted successfully!');
+                }
+            } catch (err) {
+                try {
+                    const pasteTarget = document.createElement('textarea');
+                    document.body.appendChild(pasteTarget);
+                    pasteTarget.focus();
+                    document.execCommand('paste');
+                    const pastedText = pasteTarget.value;
+                    document.body.removeChild(pasteTarget);
+                    if (pastedText) {
+                        stationUrlInput.value = pastedText;
+                        resetValidationState();
+                        stationUrlInput.dispatchEvent(new Event('input'));
+                        showToast('URL pasted successfully!');
+                    }
+                } catch (fallbackErr) {
+                    showToast('Unable to paste. Please use Ctrl+V (Cmd+V on Mac).');
+                }
+            }
+        }
+
+        // ---- Reset validation state ----
+        function resetValidationState() {
+            validatedUrl = null;
+            urlValid = false;
+            urlChecking = false;
+            urlStatus.textContent = '';
+            urlStatus.className = 'url-status';
+            stationUrlInput.className = 'form-control';
+        }
+
+        // ---- SIMPLIFIED URL VALIDATION ----
+        async function validateStreamUrl(url) {
+            if (!url || !url.trim()) {
+                urlStatus.textContent = 'Please enter a URL.';
+                urlStatus.className = 'url-status invalid';
+                urlValid = false;
+                validatedUrl = null;
+                stationUrlInput.classList.remove('url-valid', 'url-invalid', 'url-checking');
+                return false;
+            }
+
+            urlChecking = true;
+            urlValid = false;
+            validatedUrl = null;
+            urlStatus.textContent = 'Checking stream...';
+            urlStatus.className = 'url-status checking';
+            stationUrlInput.className = 'form-control url-checking';
+
+            return new Promise((resolve) => {
+                const testAudio = new Audio();
+                testAudio.crossOrigin = 'anonymous';
+                testAudio.src = url;
+
+                const timeoutId = setTimeout(() => {
+                    testAudio.removeEventListener('loadedmetadata', onSuccess);
+                    testAudio.removeEventListener('error', onError);
+                    testAudio.src = '';
+                    urlChecking = false;
+                    urlValid = false;
+                    validatedUrl = null;
+                    urlStatus.textContent = '❌ Connection timeout. Stream is slow or unavailable.';
+                    urlStatus.className = 'url-status invalid';
+                    stationUrlInput.className = 'form-control url-invalid';
+                    resolve(false);
+                }, 15000);
+
+                function onSuccess() {
+                    clearTimeout(timeoutId);
+                    testAudio.removeEventListener('loadedmetadata', onSuccess);
+                    testAudio.removeEventListener('error', onError);
+                    testAudio.src = '';
+                    urlChecking = false;
+                    urlValid = true;
+                    validatedUrl = url;
+                    urlStatus.textContent = '✅ Stream is valid and can play!';
+                    urlStatus.className = 'url-status valid';
+                    stationUrlInput.className = 'form-control url-valid';
+                    resolve(true);
+                }
+
+                function onError() {
+                    clearTimeout(timeoutId);
+                    testAudio.removeEventListener('loadedmetadata', onSuccess);
+                    testAudio.removeEventListener('error', onError);
+                    testAudio.src = '';
+                    urlChecking = false;
+                    urlValid = false;
+                    validatedUrl = null;
+                    urlStatus.textContent = '❌ Cannot play this stream. Please check the URL.';
+                    urlStatus.className = 'url-status invalid';
+                    stationUrlInput.className = 'form-control url-invalid';
+                    resolve(false);
+                }
+
+                testAudio.addEventListener('loadedmetadata', onSuccess);
+                testAudio.addEventListener('error', onError);
+                testAudio.load();
+            });
         }
 
         // ---- API ----
@@ -825,8 +998,7 @@
             const params = { limit: LIMIT, offset: homePage * LIMIT };
 
             if (homeFilter === 'famous') {
-                // Famous radio - just fetch all stations (no filter) or we could use search
-                // We'll just fetch all
+                // Famous radio - just fetch all stations
             } else {
                 const genreId = getGenreId(homeFilter);
                 if (genreId) params.genreId = genreId;
@@ -881,7 +1053,10 @@
             try {
                 const res = await fetch(`${API_BASE}/stations`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Session-Id': SESSION_ID
+                    },
                     body: JSON.stringify(payload)
                 });
                 if (!res.ok) {
@@ -894,7 +1069,13 @@
                         const blob = dataURLtoBlob(imageData);
                         const formData = new FormData();
                         formData.append('file', blob, 'icon.png');
-                        await fetch(`${API_BASE}/stations/${data.id}/icon`, { method: 'POST', body: formData });
+                        await fetch(`${API_BASE}/stations/${data.id}/icon`, {
+                            method: 'POST',
+                            headers: {
+                                'X-Session-Id': SESSION_ID
+                            },
+                            body: formData
+                        });
                     } catch (iconErr) { console.warn('Icon upload failed:', iconErr); }
                 }
                 showToast(`Station "${name}" added!`);
@@ -1017,12 +1198,13 @@
             if (mainPage.classList.contains('active')) renderHomePage();
             else renderSearchPage();
 
-            const sessionId = localStorage.getItem('radioSession') || 'session-' + Date.now();
-            if (!localStorage.getItem('radioSession')) localStorage.setItem('radioSession', sessionId);
             fetch(`${API_BASE}/stations/${stationId}/play`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ session_id: sessionId })
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Session-Id': SESSION_ID
+                },
+                body: JSON.stringify({ session_id: SESSION_ID })
             }).catch(() => {});
         }
 
@@ -1159,8 +1341,49 @@
             if (audioElement) audioElement.volume = parseFloat(this.value);
         });
 
+        // Paste button
+        pasteUrlBtn.addEventListener('click', pasteFromClipboard);
+
+        // URL Check button
+        checkUrlBtn.addEventListener('click', async function() {
+            const url = stationUrlInput.value.trim();
+            if (!url) {
+                urlStatus.textContent = 'Please enter a URL first.';
+                urlStatus.className = 'url-status invalid';
+                urlValid = false;
+                validatedUrl = null;
+                stationUrlInput.className = 'form-control url-invalid';
+                return;
+            }
+            await validateStreamUrl(url);
+        });
+
+        // Auto-check on URL input change - reset validation when URL changes
+        let urlCheckTimeout = null;
+        stationUrlInput.addEventListener('input', function() {
+            clearTimeout(urlCheckTimeout);
+            const currentUrl = this.value.trim();
+            const previousUrl = validatedUrl;
+
+            // If the URL changed from what was validated, reset validation state
+            if (previousUrl !== null && currentUrl !== previousUrl) {
+                resetValidationState();
+            }
+
+            // If URL is empty, just reset
+            if (!currentUrl) {
+                resetValidationState();
+                return;
+            }
+
+            // Auto-check with debounce
+            urlCheckTimeout = setTimeout(async () => {
+                await validateStreamUrl(currentUrl);
+            }, 800);
+        });
+
         // Add station
-        submitStationBtn.addEventListener('click', function() {
+        submitStationBtn.addEventListener('click', async function() {
             const name = stationNameInput.value.trim();
             const url = stationUrlInput.value.trim();
             const genreId = stationGenreSelect.value;
@@ -1175,6 +1398,22 @@
             if (!genreId) { showToast('Please select a genre.'); return; }
             if (!languageId) { showToast('Please select a language.'); return; }
 
+            // Check if the current URL matches the validated URL
+            if (!urlValid || validatedUrl !== url) {
+                // Try to validate the URL first
+                const isValid = await validateStreamUrl(url);
+                if (!isValid) {
+                    showToast('Please provide a valid stream URL.');
+                    return;
+                }
+            }
+
+            // Double-check validation state
+            if (!urlValid || validatedUrl !== url) {
+                showToast('Please wait for URL validation to complete.');
+                return;
+            }
+
             createStation(name, url, genreId, languageId, description, imageData)
                 .then(ok => {
                     if (ok) {
@@ -1187,6 +1426,7 @@
                         stationDescriptionInput.value = '';
                         stationImageInput.value = '';
                         imagePreview.innerHTML = `<i class="bi bi-image placeholder-icon"></i>`;
+                        resetValidationState();
                     }
                 });
         });
@@ -1208,6 +1448,7 @@
             stationDescriptionInput.value = '';
             stationImageInput.value = '';
             imagePreview.innerHTML = `<i class="bi bi-image placeholder-icon"></i>`;
+            resetValidationState();
         });
 
         document.addEventListener('keydown', (e) => {

@@ -100,6 +100,14 @@ paths:
       description: Add a new radio station to the database (Public - no auth required)
       operationId: createStation
       security: []  # No authentication required
+      parameters:
+        - name: X-Session-Id
+          in: header
+          description: Session ID to track who created the station
+          required: true
+          schema:
+            type: string
+            example: session-1698765432100
       requestBody:
         description: Create radio station
         content:
@@ -560,6 +568,15 @@ components:
           type: string
           format: uuid
           example: 550e8400-e29b-41d4-a716-446655440000
+        access_token:
+          type: string
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        expires_in:
+          type: integer
+          example: 60
+        token_type:
+          type: string
+          example: "Bearer"
 
 #    StationDetail:
 #      allOf:

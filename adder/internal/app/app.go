@@ -13,7 +13,6 @@ import (
 	"github.com/leabago/share-radio/adder/internal/controller/grpc"
 	grpcmw "github.com/leabago/share-radio/adder/internal/controller/grpc/middleware"
 	"github.com/leabago/share-radio/adder/internal/controller/http_api"
-	natsrpc "github.com/leabago/share-radio/adder/internal/controller/nats_rpc"
 	"github.com/leabago/share-radio/adder/internal/usecase/genre"
 	"github.com/leabago/share-radio/adder/internal/usecase/language"
 	"github.com/leabago/share-radio/adder/internal/usecase/station"
@@ -22,19 +21,11 @@ import (
 	persistLanguageRepo "github.com/leabago/share-radio/adder/internal/repo/persistent/language"
 	persistStationRepo "github.com/leabago/share-radio/adder/internal/repo/persistent/station"
 
-	persistTaskRepo "github.com/leabago/share-radio/adder/internal/repo/persistent/task"
-	persistTranslationRepo "github.com/leabago/share-radio/adder/internal/repo/persistent/translation"
-	persistUserRepo "github.com/leabago/share-radio/adder/internal/repo/persistent/user"
-	"github.com/leabago/share-radio/adder/internal/repo/webapi"
 	"github.com/leabago/share-radio/adder/internal/usecase"
-	"github.com/leabago/share-radio/adder/internal/usecase/task"
-	"github.com/leabago/share-radio/adder/internal/usecase/translation"
-	"github.com/leabago/share-radio/adder/internal/usecase/user"
 	"github.com/leabago/share-radio/adder/pkg/grpcserver"
 	"github.com/leabago/share-radio/adder/pkg/httpserver"
 	"github.com/leabago/share-radio/adder/pkg/jwt"
 	"github.com/leabago/share-radio/adder/pkg/logger"
-	natsRPCServer "github.com/leabago/share-radio/adder/pkg/nats/nats_rpc/server"
 	"github.com/leabago/share-radio/adder/pkg/postgres"
 	rmqRPCServer "github.com/leabago/share-radio/adder/pkg/rabbitmq/rmq_rpc/server"
 	"github.com/leabago/share-radio/adder/pkg/tracing"
@@ -43,54 +34,38 @@ import (
 )
 
 type useCases struct {
-	translation usecase.Translation
-	user        usecase.User
-	task        usecase.Task
-	station     usecase.Station
-	genre       usecase.Genre
-	language    usecase.Language
+	station  usecase.Station
+	genre    usecase.Genre
+	language usecase.Language
 }
 
 type servers struct {
 	rmq  *rmqRPCServer.Server
-	nats *natsRPCServer.Server
 	grpc *grpcserver.Server
 	http *httpserver.Server
 }
 
-func initUseCases(pg *postgres.Postgres, jwtManager *jwt.Manager) useCases {
-	translationRepo := persistTranslationRepo.New(pg)
-	taskRepo := persistTaskRepo.New(pg)
-	userRepo := persistUserRepo.New(pg)
+func initUseCases(cfg *config.Config, pg *postgres.Postgres) useCases {
+
 	stationRepo := persistStationRepo.New(pg)
 	genreRepo := persistGenreRepo.New(pg)
 	languageRepo := persistLanguageRepo.New(pg)
 
 	return useCases{
-		user:        user.New(userRepo, jwtManager),
-		task:        task.New(taskRepo),
-		translation: translation.New(translationRepo, webapi.New()),
-		station:     station.New(stationRepo),
-		genre:       genre.New(genreRepo),
-		language:    language.New(languageRepo),
+
+		station:  station.New(cfg, stationRepo),
+		genre:    genre.New(genreRepo),
+		language: language.New(languageRepo),
 	}
 }
 
 func initServers(cfg *config.Config, uc useCases, jwtManager *jwt.Manager, l logger.Interface) servers {
 	// RabbitMQ RPC Server
-	rmqRouter := amqprpc.NewRouter(uc.translation, uc.user, uc.task, jwtManager, l)
+	rmqRouter := amqprpc.NewRouter(jwtManager, l)
 
 	rmqServer, err := rmqRPCServer.New(cfg.RMQ.URL, cfg.RMQ.ServerExchange, rmqRouter, l)
 	if err != nil {
 		l.Fatal(fmt.Errorf("app - Run - rmqServer - server.New: %w", err))
-	}
-
-	// NATS RPC Server
-	natsRouter := natsrpc.NewRouter(uc.translation, uc.user, uc.task, jwtManager, l)
-
-	natsServer, err := natsRPCServer.New(cfg.NATS.URL, cfg.NATS.ServerExchange, natsRouter, l)
-	if err != nil {
-		l.Fatal(fmt.Errorf("app - Run - natsServer - server.New: %w", err))
 	}
 
 	// gRPC Server
@@ -102,7 +77,7 @@ func initServers(cfg *config.Config, uc useCases, jwtManager *jwt.Manager, l log
 			pbgrpc.StatsHandler(otelgrpc.NewServerHandler()),
 		),
 	)
-	grpc.NewRouter(grpcServer.App, uc.translation, uc.user, uc.task, l)
+	grpc.NewRouter(grpcServer.App, l)
 
 	// HTTP Server
 	httpServer := httpserver.New(l, httpserver.Port(cfg.HTTP.Port), httpserver.Prefork(cfg.HTTP.UsePreforkMode))
@@ -110,7 +85,6 @@ func initServers(cfg *config.Config, uc useCases, jwtManager *jwt.Manager, l log
 
 	return servers{
 		rmq:  rmqServer,
-		nats: natsServer,
 		grpc: grpcServer,
 		http: httpServer,
 	}
@@ -118,7 +92,6 @@ func initServers(cfg *config.Config, uc useCases, jwtManager *jwt.Manager, l log
 
 func (s *servers) startServers() {
 	s.rmq.Start()
-	s.nats.Start()
 	s.grpc.Start()
 	s.http.Start()
 
@@ -139,8 +112,6 @@ func (s *servers) waitForShutdown(l logger.Interface) {
 		l.Error(fmt.Errorf("app - Run - grpcServer.Notify: %w", err))
 	case err = <-s.rmq.Notify():
 		l.Error(fmt.Errorf("app - Run - rmqServer.Notify: %w", err))
-	case err = <-s.nats.Notify():
-		l.Error(fmt.Errorf("app - Run - natsServer.Notify: %w", err))
 	}
 
 	s.shutdownServers(l)
@@ -159,9 +130,6 @@ func (s *servers) shutdownServers(l logger.Interface) {
 		l.Error(fmt.Errorf("app - Run - rmqServer.Shutdown: %w", err))
 	}
 
-	if err := s.nats.Shutdown(); err != nil {
-		l.Error(fmt.Errorf("app - Run - natsServer.Shutdown: %w", err))
-	}
 }
 
 // Run creates objects via constructors.
@@ -198,7 +166,7 @@ func Run(cfg *config.Config) {
 	// JWT
 	jwtManager := jwt.New(cfg.JWT.Secret, cfg.JWT.TokenExpiry)
 
-	uc := initUseCases(pg, jwtManager)
+	uc := initUseCases(cfg, pg)
 	s := initServers(cfg, uc, jwtManager, l)
 	s.startServers()
 	s.waitForShutdown(l)

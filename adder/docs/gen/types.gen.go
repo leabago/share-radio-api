@@ -183,8 +183,17 @@ type Station struct {
 
 // StationId defines model for StationId.
 type StationId struct {
+	// AccessToken Example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+	AccessToken *string `json:"access_token,omitempty"`
+
+	// ExpiresIn Example: 60
+	ExpiresIn *int `json:"expires_in,omitempty"`
+
 	// Id Example: 550e8400-e29b-41d4-a716-446655440000
 	Id *openapi_types.UUID `json:"id,omitempty"`
+
+	// TokenType Example: Bearer
+	TokenType *string `json:"token_type,omitempty"`
 }
 
 // StationListResponse defines model for StationListResponse.
@@ -246,6 +255,12 @@ type ListStationsParamsSortBy string
 
 // ListStationsParamsSortOrder defines parameters for ListStations.
 type ListStationsParamsSortOrder string
+
+// CreateStationParams defines parameters for CreateStation.
+type CreateStationParams struct {
+	// XSessionId Session ID to track who created the station
+	XSessionId string `json:"X-Session-Id"`
+}
 
 // UploadIconMultipartBody defines parameters for UploadIcon.
 type UploadIconMultipartBody struct {

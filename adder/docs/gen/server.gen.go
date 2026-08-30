@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io"
 	"mime/multipart"
+	"net/http"
 	"net/url"
 
 	"github.com/gofiber/fiber/v2"
@@ -30,7 +31,7 @@ type ServerInterface interface {
 	ListStations(c *fiber.Ctx, params ListStationsParams) error
 	// CreateStation Create radio station
 	// (POST /stations)
-	CreateStation(c *fiber.Ctx) error
+	CreateStation(c *fiber.Ctx, params CreateStationParams) error
 	// DeleteStation Delete radio station
 	// (DELETE /stations/{id})
 	DeleteStation(c *fiber.Ctx, id openapi_types.UUID) error
@@ -181,8 +182,35 @@ func (siw *ServerInterfaceWrapper) ListStations(c *fiber.Ctx) error {
 // CreateStation operation middleware
 func (siw *ServerInterfaceWrapper) CreateStation(c *fiber.Ctx) error {
 
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params CreateStationParams
+
+	headers := c.GetReqHeaders()
+
+	// ------------- Required header parameter "X-Session-Id" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Session-Id")]; found {
+		var XSessionId string
+		n := len(valueList)
+		if n != 1 {
+			return fiber.NewError(fiber.StatusBadRequest, fmt.Sprintf("Too many values for ParamName X-Session-Id, 1 is required, but %d found", n))
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Session-Id", valueList[0], &XSessionId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter X-Session-Id: %w", err).Error())
+		}
+
+		params.XSessionId = XSessionId
+
+	} else {
+		return fiber.NewError(fiber.StatusBadRequest, "Header parameter X-Session-Id is required, but not found")
+	}
+
 	handler := func(c *fiber.Ctx) error {
-		return siw.Handler.CreateStation(c)
+		return siw.Handler.CreateStation(c, params)
 	}
 
 	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
@@ -532,7 +560,8 @@ func (response ListStations500JSONResponse) VisitListStationsResponse(ctx *fiber
 }
 
 type CreateStationRequestObject struct {
-	Body *CreateStationJSONRequestBody
+	Params CreateStationParams
+	Body   *CreateStationJSONRequestBody
 }
 
 type CreateStationResponseObject interface {
@@ -1022,8 +1051,10 @@ func (sh *strictHandler) ListStations(ctx *fiber.Ctx, params ListStationsParams)
 }
 
 // CreateStation operation middleware
-func (sh *strictHandler) CreateStation(ctx *fiber.Ctx) error {
+func (sh *strictHandler) CreateStation(ctx *fiber.Ctx, params CreateStationParams) error {
 	var request CreateStationRequestObject
+
+	request.Params = params
 
 	var body CreateStationJSONRequestBody
 	if err := ctx.BodyParser(&body); err != nil {
