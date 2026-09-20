@@ -76,20 +76,6 @@ services:
         aliases:
           - rabbitmq.lvh.me
 
-  nats:
-    container_name: nats
-    image: nats:2.14-alpine
-    command: [ "-m", "8222", "-sd", "/nats-data", "-user", "guest", "-pass", "guest" ]
-    ports:
-      - "4222:4222"
-      - "8222:8222"
-    volumes:
-      - nats_data:/nats-data
-    networks:
-      app_network:
-        aliases:
-          - nats.lvh.me
-
   jaeger:
     container_name: jaeger
     image: jaegertracing/all-in-one:1.76.0

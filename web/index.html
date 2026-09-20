@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
@@ -7,1464 +8,192 @@
     <!-- Bootstrap 5 + Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <style>
-        /* custom overrides & fine-tuning */
-        body {
-            background: #0f0f12;
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            padding-top: 70px;
-            padding-bottom: 90px;
-            min-height: 100vh;
-        }
-        .app-header-fixed {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 1030;
-            background: #16161c;
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            border-bottom: 1px solid #2a2a32;
-            padding: 0.75rem 1rem;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.6);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        .app-header-fixed .brand {
-            color: #f0f0f0;
-            font-weight: 500;
-            font-size: 1.3rem;
-            letter-spacing: -0.3px;
-        }
-        .app-header-fixed .brand i {
-            color: #6c8cff;
-            margin-right: 8px;
-        }
-        .app-header-fixed .nav-links a {
-            color: #b0b0be;
-            text-decoration: none;
-            margin-left: 1rem;
-            font-size: 0.9rem;
-            padding: 0.3rem 0.8rem;
-            border-radius: 4px;
-            transition: 0.15s;
-            cursor: pointer;
-        }
-        .app-header-fixed .nav-links a:hover,
-        .app-header-fixed .nav-links a.active {
-            background: #2a2a36;
-            color: #fff;
-        }
-        .app-header-fixed .nav-links a.active {
-            background: #6c8cff;
-            color: #fff;
-        }
-        .station-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-            gap: 1rem;
-            margin-top: 0.5rem;
-        }
-        .station-card {
-            background: #1e1e26;
-            border: 1px solid #2c2c36;
-            border-radius: 4px;
-            padding: 1rem 0.5rem 0.8rem;
-            text-align: center;
-            transition: all 0.15s ease;
-            cursor: pointer;
-            box-shadow: 0 8px 16px -8px rgba(0,0,0,0.5);
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .station-card:hover {
-            transform: translateY(-4px);
-            border-color: #6c8cff;
-            background: #262630;
-        }
-        .station-card.active {
-            border: 2px solid #6c8cff;
-            background: #262a3a;
-            box-shadow: 0 0 20px rgba(108, 140, 255, 0.2);
-        }
-        .station-card .artwork {
-            width: 70px;
-            height: 70px;
-            margin: 0 auto 10px;
-            background: #2a2a34;
-            border-radius: 4px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2rem;
-            color: #6c8cff;
-            border: 1px solid #363642;
-            overflow: hidden;
-            flex-shrink: 0;
-        }
-        .station-card .artwork img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        .station-card .station-name {
-            color: #eee;
-            font-weight: 500;
-            font-size: 0.95rem;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 100%;
-        }
-        .station-card .genre-tag {
-            font-size: 0.65rem;
-            background: #2e2e3a;
-            padding: 0.15rem 0.8rem;
-            border-radius: 4px;
-            color: #b0b0be;
-            display: inline-block;
-            margin-top: 4px;
-        }
-        .station-card .country-flag {
-            font-size: 0.7rem;
-            color: #8a8a98;
-            margin-top: 6px;
-        }
-        .station-card .play-indicator {
-            font-size: 0.7rem;
-            color: #6c8cff;
-            margin-top: 6px;
-        }
-        .filter-bar {
-            background: #14141a;
-            padding: 0.7rem 1rem;
-            border-radius: 4px;
-            border: 1px solid #2a2a32;
-            margin-bottom: 1.5rem;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-        }
-        .filter-bar .filter-group {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-            align-items: center;
-        }
-        .filter-bar .filter-btn {
-            background: #1e1e28;
-            border: 1px solid #31313c;
-            color: #b0b0be;
-            border-radius: 4px;
-            padding: 0.25rem 1rem;
-            font-size: 0.8rem;
-            transition: 0.15s;
-            cursor: pointer;
-            white-space: nowrap;
-        }
-        .filter-bar .filter-btn:hover,
-        .filter-bar .filter-btn.active {
-            background: #6c8cff;
-            border-color: #6c8cff;
-            color: #fff;
-        }
-        .filter-bar .filter-btn.famous {
-            background: #2a2a3a;
-            border-color: #6c8cff;
-            color: #fff;
-        }
-        .player-bar-fixed {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            z-index: 1040;
-            background: #14141ad9;
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-top: 1px solid #2a2a34;
-            padding: 0.6rem 1rem;
-            box-shadow: 0 -6px 30px rgba(0,0,0,0.7);
-        }
-        .player-bar-fixed .track-info {
-            color: #d0d0da;
-            min-width: 0;
-        }
-        .player-bar-fixed .track-info .station-name {
-            color: #f0f0f0;
-            font-weight: 500;
-            font-size: 1rem;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .player-bar-fixed .track-info .now-playing-label {
-            font-size: 0.7rem;
-            color: #7a7a8a;
-        }
-        .player-bar-fixed .player-controls .btn {
-            color: #c0c0ce;
-            border: none;
-            background: transparent;
-            font-size: 1.3rem;
-            padding: 0.2rem 0.5rem;
-            transition: 0.1s;
-        }
-        .player-bar-fixed .player-controls .btn:hover {
-            color: #fff;
-            transform: scale(1.1);
-        }
-        .player-bar-fixed .player-controls .btn-play {
-            background: #6c8cff;
-            color: #fff;
-            border-radius: 4px;
-            width: 44px;
-            height: 44px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-        }
-        .player-bar-fixed .player-controls .btn-play:hover {
-            background: #5a7ae8;
-            transform: scale(0.95);
-        }
-        .player-bar-fixed .volume-slider {
-            width: 80px;
-            accent-color: #6c8cff;
-            background: #2f2f3c;
-            height: 4px;
-            border-radius: 2px;
-        }
-        @media (max-width: 576px) {
-            .player-bar-fixed .volume-slider { width: 50px; }
-            .station-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
-        }
-        .pagination-custom .page-link {
-            background: #1c1c24;
-            border-color: #32323e;
-            color: #b0b0be;
-            cursor: pointer;
-        }
-        .pagination-custom .page-link:hover {
-            background: #2a2a36;
-            border-color: #6c8cff;
-            color: #fff;
-        }
-        .pagination-custom .page-item.active .page-link {
-            background: #6c8cff;
-            border-color: #6c8cff;
-            color: #fff;
-        }
-        .pagination-custom .page-item.disabled .page-link {
-            background: #14141a;
-            color: #4a4a56;
-            cursor: default;
-        }
-        .modal-content {
-            background: #1d1d26;
-            border: 1px solid #353542;
-            color: #e0e0ea;
-            border-radius: 4px;
-        }
-        .modal-header {
-            border-bottom: 1px solid #2e2e3c;
-        }
-        .modal-footer {
-            border-top: 1px solid #2e2e3c;
-        }
-        .modal .form-control,
-        .modal .form-select {
-            background: #13131a;
-            border: 1px solid #33333e;
-            color: #eee;
-            border-radius: 4px;
-        }
-        .modal .form-control:focus,
-        .modal .form-select:focus {
-            background: #13131a;
-            border-color: #6c8cff;
-            box-shadow: 0 0 0 0.2rem rgba(108, 140, 255, 0.2);
-            color: #fff;
-        }
-        .modal .btn-close {
-            filter: invert(0.8);
-        }
-        .modal .form-label {
-            color: #c0c0ce;
-        }
-        .btn-primary {
-            background: #6c8cff;
-            border-color: #6c8cff;
-            border-radius: 4px;
-        }
-        .btn-primary:hover {
-            background: #5a7ae8;
-            border-color: #5a7ae8;
-        }
-        .btn-secondary {
-            background: #2c2c38;
-            border-color: #3d3d4a;
-            color: #ccc;
-            border-radius: 4px;
-        }
-        .btn-secondary:hover {
-            background: #3a3a48;
-            color: #fff;
-        }
-        .station-list-container {
-            max-height: calc(100vh - 320px);
-            overflow-y: auto;
-            padding-right: 4px;
-        }
-        .station-list-container::-webkit-scrollbar {
-            width: 6px;
-        }
-        .station-list-container::-webkit-scrollbar-track {
-            background: #1a1a22;
-            border-radius: 2px;
-        }
-        .station-list-container::-webkit-scrollbar-thumb {
-            background: #3a3a4a;
-            border-radius: 2px;
-        }
-        .toast-container {
-            z-index: 1060;
-        }
-        .image-preview {
-            width: 80px;
-            height: 80px;
-            border-radius: 4px;
-            background: #2a2a34;
-            border: 1px solid #363642;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            margin-top: 8px;
-        }
-        .image-preview img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        .image-preview .placeholder-icon {
-            font-size: 2rem;
-            color: #6c8cff;
-        }
-        /* page containers - only one visible at a time */
-        .page-container {
-            display: none !important;
-        }
-        .page-container.active {
-            display: block !important;
-        }
-        .filter-bar .filter-group label {
-            color: #8a8a98;
-            font-size: 0.8rem;
-            margin-right: 0.2rem;
-        }
-        /* ensure filter buttons have same appearance on both pages */
-        #mainPage .filter-btn,
-        #searchPage .filter-btn {
-            background: #1e1e28;
-            border: 1px solid #31313c;
-            color: #b0b0be;
-            border-radius: 4px;
-            padding: 0.25rem 1rem;
-            font-size: 0.8rem;
-            transition: 0.15s;
-            cursor: pointer;
-            white-space: nowrap;
-        }
-        #mainPage .filter-btn:hover,
-        #searchPage .filter-btn:hover,
-        #mainPage .filter-btn.active,
-        #searchPage .filter-btn.active {
-            background: #6c8cff;
-            border-color: #6c8cff;
-            color: #fff;
-        }
-        #mainPage .filter-btn.famous,
-        #searchPage .filter-btn.famous {
-            background: #2a2a3a;
-            border-color: #6c8cff;
-            color: #fff;
-        }
-        #mainPage .filter-btn.famous.active,
-        #searchPage .filter-btn.famous.active {
-            background: #6c8cff;
-        }
-        .btn-outline-light {
-            border-radius: 4px;
-        }
-        .form-select {
-            border-radius: 4px;
-        }
-        .input-group-text {
-            border-radius: 4px 0 0 4px;
-        }
-        .input-group .form-control {
-            border-radius: 0 4px 4px 0;
-        }
-        .url-valid {
-            border-color: #28a745 !important;
-        }
-        .url-invalid {
-            border-color: #dc3545 !important;
-        }
-        .url-checking {
-            border-color: #ffc107 !important;
-        }
-        .url-status {
-            font-size: 0.8rem;
-            margin-top: 4px;
-        }
-        .url-status.valid {
-            color: #28a745;
-        }
-        .url-status.invalid {
-            color: #dc3545;
-        }
-        .url-status.checking {
-            color: #ffc107;
-        }
-        .btn-check-url {
-            white-space: nowrap;
-        }
-        .btn-paste-url {
-            white-space: nowrap;
-        }
-    </style>
+    <link href="style.css" rel="stylesheet">
 </head>
+
 <body>
 
-<!-- ========== FIXED HEADER ========== -->
-<header class="app-header-fixed">
-    <div class="brand">
-        <i class="bi bi-broadcast"></i> RadioWave
-    </div>
-    <div class="nav-links">
-        <a id="mainPageLink" class="active">Home</a>
-        <a id="searchPageLink">Search</a>
-        <button class="btn btn-outline-light btn-sm ms-2" data-bs-toggle="modal" data-bs-target="#addStationModal">
-            <i class="bi bi-plus-circle"></i> Add
-        </button>
-    </div>
-</header>
-
-<!-- ========== MAIN CONTENT ========== -->
-<main class="container-fluid px-3 px-md-4">
-
-    <!-- ===== HOME PAGE ===== -->
-    <div id="mainPage" class="page-container active">
-        <div class="filter-bar d-flex align-items-center justify-content-between flex-wrap">
-            <div class="filter-group">
-                <button class="filter-btn famous active" data-filter="famous">⭐ Famous Radio</button>
-                <span style="color:#4a4a56; margin:0 4px;">|</span>
-                <button class="filter-btn" data-filter="rock">🎸 Rock</button>
-                <button class="filter-btn" data-filter="pop">🎤 Pop</button>
-                <button class="filter-btn" data-filter="jazz">🎷 Jazz</button>
-                <button class="filter-btn" data-filter="classical">🎻 Classical</button>
-                <button class="filter-btn" data-filter="electronic">⚡ Electronic</button>
-                <button class="filter-btn" data-filter="talk">🗣 Talk</button>
-                <button class="filter-btn" data-filter="indie">🎧 Indie</button>
-                <button class="filter-btn" data-filter="ambient">🌊 Ambient</button>
-                <button class="filter-btn" data-filter="folk">🪕 Folk</button>
-            </div>
-            <div>
-                <span class="text-secondary" style="font-size:0.8rem;" id="filterLabel">⭐ Famous Radio</span>
-            </div>
+    <!-- ========== FIXED HEADER ========== -->
+    <header class="app-header-fixed">
+        <div class="brand">
+            <i class="bi bi-broadcast"></i> RadioWave
         </div>
-
-        <div class="station-list-container">
-            <div id="stationGrid" class="station-grid"></div>
+        <div class="nav-links">
+            <a id="mainPageLink" class="active">Home</a>
+            <a id="searchPageLink">Search</a>
+            <button class="btn btn-outline-light btn-sm ms-2" data-bs-toggle="modal" data-bs-target="#addStationModal">
+                <i class="bi bi-plus-circle"></i> Add
+            </button>
         </div>
+    </header>
 
-        <nav aria-label="Station pagination" class="mt-3 d-flex justify-content-center">
-            <ul class="pagination pagination-custom" id="paginationControls">
-                <li class="page-item" id="prevPageItem"><a class="page-link" id="prevPageBtn"><i class="bi bi-chevron-left"></i></a></li>
-                <li class="page-item disabled"><a class="page-link" id="pageInfo">1 / 1</a></li>
-                <li class="page-item" id="nextPageItem"><a class="page-link" id="nextPageBtn"><i class="bi bi-chevron-right"></i></a></li>
-            </ul>
-        </nav>
-    </div>
+    <!-- ========== MAIN CONTENT ========== -->
+    <main class="container-fluid px-3 px-md-4">
 
-    <!-- ===== SEARCH PAGE ===== -->
-    <div id="searchPage" class="page-container">
-        <div class="filter-bar d-flex align-items-center flex-wrap gap-2">
-            <div class="input-group" style="flex: 2 1 200px;">
-                <span class="input-group-text"><i class="bi bi-search"></i></span>
-                <input type="text" class="form-control" id="searchInput" placeholder="Search by name...">
-            </div>
-            <select class="form-select form-select-sm" id="genreFilter" style="width:130px;">
-                <option value="">Genre</option>
-            </select>
-            <select class="form-select form-select-sm" id="languageFilter" style="width:130px;">
-                <option value="">Language</option>
-            </select>
-            <button class="btn btn-outline-light btn-sm" id="searchBtn"><i class="bi bi-arrow-right"></i> Search</button>
-            <button class="btn btn-outline-secondary btn-sm" id="clearSearchBtn">Clear</button>
-        </div>
-
-        <div class="station-list-container">
-            <div id="searchStationGrid" class="station-grid"></div>
-        </div>
-
-        <nav aria-label="Search pagination" class="mt-3 d-flex justify-content-center">
-            <ul class="pagination pagination-custom" id="searchPagination">
-                <li class="page-item" id="searchPrevPage"><a class="page-link" id="searchPrevBtn"><i class="bi bi-chevron-left"></i></a></li>
-                <li class="page-item disabled"><a class="page-link" id="searchPageInfo">1 / 1</a></li>
-                <li class="page-item" id="searchNextPage"><a class="page-link" id="searchNextBtn"><i class="bi bi-chevron-right"></i></a></li>
-            </ul>
-        </nav>
-    </div>
-</main>
-
-<!-- ========== FIXED PLAYER BAR ========== -->
-<div class="player-bar-fixed d-flex align-items-center justify-content-between flex-wrap gap-2">
-    <div class="track-info d-flex align-items-center gap-2" style="flex: 1 1 150px; min-width:0;">
-        <i class="bi bi-headphones" style="color:#6c8cff; font-size:1.4rem;"></i>
-        <div class="text-truncate">
-            <div class="station-name" id="currentStationName">Select a station</div>
-            <div class="now-playing-label"><i class="bi bi-play-circle-fill"></i> live stream</div>
-        </div>
-    </div>
-    <div class="player-controls d-flex align-items-center gap-2 flex-wrap justify-content-end">
-        <input type="range" min="0" max="1" step="0.05" value="0.8" class="volume-slider" id="volumeSlider">
-        <button class="btn btn-play" id="playPauseBtn"><i class="bi bi-play-fill"></i></button>
-        <button class="btn" id="stopBtn"><i class="bi bi-stop-fill"></i></button>
-    </div>
-</div>
-
-<!-- ========== ADD STATION MODAL ========== -->
-<div class="modal fade" id="addStationModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title"><i class="bi bi-plus-circle" style="color:#6c8cff;"></i> Add radio station</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <div class="mb-3">
-                    <label class="form-label">Station name *</label>
-                    <input type="text" class="form-control" id="stationNameInput" placeholder="e.g. Radio Nova">
+        <!-- ===== HOME PAGE ===== -->
+        <div id="mainPage" class="page-container active">
+            <div class="filter-bar d-flex align-items-center justify-content-between flex-wrap">
+                <div class="filter-group">
+                    <button class="filter-btn famous active" data-filter="famous">⭐ Famous Radio</button>
+                    <span style="color:#4a4a56; margin:0 4px;">|</span>
+                    <button class="filter-btn" data-filter="rock">🎸 Rock</button>
+                    <button class="filter-btn" data-filter="pop">🎤 Pop</button>
+                    <button class="filter-btn" data-filter="jazz">🎷 Jazz</button>
+                    <button class="filter-btn" data-filter="classical">🎻 Classical</button>
+                    <button class="filter-btn" data-filter="electronic">⚡ Electronic</button>
+                    <button class="filter-btn" data-filter="talk">🗣 Talk</button>
+                    <button class="filter-btn" data-filter="indie">🎧 Indie</button>
+                    <button class="filter-btn" data-filter="ambient">🌊 Ambient</button>
+                    <button class="filter-btn" data-filter="folk">🪕 Folk</button>
                 </div>
-                <div class="mb-3">
-                    <label class="form-label">Stream URL *</label>
-                    <div class="input-group">
-                        <input type="text" class="form-control" id="stationUrlInput" placeholder="https://example.com/stream.mp3">
-                        <button class="btn btn-outline-secondary btn-paste-url" type="button" id="pasteUrlBtn" title="Paste from clipboard">
-                            <i class="bi bi-clipboard"></i> Paste
-                        </button>
-                        <button class="btn btn-outline-secondary btn-check-url" type="button" id="checkUrlBtn">
-                            <i class="bi bi-check-circle"></i> Check
-                        </button>
+                <div>
+                    <span class="text-secondary" style="font-size:0.8rem;" id="filterLabel">⭐ Famous Radio</span>
+                </div>
+            </div>
+
+            <div class="station-list-container">
+                <div id="stationGrid" class="station-grid"></div>
+            </div>
+
+            <nav aria-label="Station pagination" class="mt-3 d-flex justify-content-center">
+                <ul class="pagination pagination-custom" id="paginationControls">
+                    <li class="page-item" id="prevPageItem"><a class="page-link" id="prevPageBtn"><i
+                                class="bi bi-chevron-left"></i></a></li>
+                    <li class="page-item disabled"><a class="page-link" id="pageInfo">1 / 1</a></li>
+                    <li class="page-item" id="nextPageItem"><a class="page-link" id="nextPageBtn"><i
+                                class="bi bi-chevron-right"></i></a></li>
+                </ul>
+            </nav>
+        </div>
+
+        <!-- ===== SEARCH PAGE ===== -->
+        <div id="searchPage" class="page-container">
+            <div class="filter-bar d-flex align-items-center flex-wrap gap-2">
+                <div class="input-group" style="flex: 2 1 200px;">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input type="text" class="form-control" id="searchInput" placeholder="Search by name...">
+                </div>
+                <select class="form-select form-select-sm" id="genreFilter" style="width:130px;">
+                    <option value="">Genre</option>
+                </select>
+                <select class="form-select form-select-sm" id="languageFilter" style="width:130px;">
+                    <option value="">Language</option>
+                </select>
+                <button class="btn btn-outline-light btn-sm" id="searchBtn"><i class="bi bi-arrow-right"></i>
+                    Search</button>
+                <button class="btn btn-outline-secondary btn-sm" id="clearSearchBtn">Clear</button>
+            </div>
+
+            <div class="station-list-container">
+                <div id="searchStationGrid" class="station-grid"></div>
+            </div>
+
+            <nav aria-label="Search pagination" class="mt-3 d-flex justify-content-center">
+                <ul class="pagination pagination-custom" id="searchPagination">
+                    <li class="page-item" id="searchPrevPage"><a class="page-link" id="searchPrevBtn"><i
+                                class="bi bi-chevron-left"></i></a></li>
+                    <li class="page-item disabled"><a class="page-link" id="searchPageInfo">1 / 1</a></li>
+                    <li class="page-item" id="searchNextPage"><a class="page-link" id="searchNextBtn"><i
+                                class="bi bi-chevron-right"></i></a></li>
+                </ul>
+            </nav>
+        </div>
+    </main>
+
+    <!-- ========== FIXED PLAYER BAR ========== -->
+    <div class="player-bar-fixed d-flex align-items-center justify-content-between flex-wrap gap-2">
+        <div class="track-info d-flex align-items-center gap-2" style="flex: 1 1 150px; min-width:0;">
+            <i class="bi bi-headphones" style="color:#6c8cff; font-size:1.4rem;"></i>
+            <div class="text-truncate">
+                <div class="station-name" id="currentStationName">Select a station</div>
+                <div class="now-playing-label"><i class="bi bi-play-circle-fill"></i> live stream</div>
+            </div>
+        </div>
+        <div class="player-controls d-flex align-items-center gap-2 flex-wrap justify-content-end">
+            <input type="range" min="0" max="1" step="0.05" value="0.8" class="volume-slider" id="volumeSlider">
+            <button class="btn btn-play" id="playPauseBtn"><i class="bi bi-play-fill"></i></button>
+            <button class="btn" id="stopBtn"><i class="bi bi-stop-fill"></i></button>
+        </div>
+    </div>
+
+    <!-- ========== ADD STATION MODAL ========== -->
+    <div class="modal fade" id="addStationModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-plus-circle" style="color:#6c8cff;"></i> Add radio station
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Station name *</label>
+                        <input type="text" class="form-control" id="stationNameInput" placeholder="e.g. Radio Nova">
                     </div>
-                    <div id="urlStatus" class="url-status"></div>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Genre *</label>
-                    <select class="form-select" id="stationGenreSelect">
-                        <option value="">Select genre...</option>
-                    </select>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Language *</label>
-                    <select class="form-select" id="stationLanguageSelect">
-                        <option value="">Select language...</option>
-                    </select>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Description</label>
-                    <textarea class="form-control" id="stationDescriptionInput" rows="3" placeholder="Station description (optional)"></textarea>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Station image (optional)</label>
-                    <input type="file" class="form-control" id="stationImageInput" accept="image/*">
-                    <div class="image-preview" id="imagePreview">
-                        <i class="bi bi-image placeholder-icon"></i>
+                    <div class="mb-3">
+                        <label class="form-label">Stream URL *</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="stationUrlInput"
+                                placeholder="https://example.com/stream.mp3">
+                            <button class="btn btn-outline-secondary btn-paste-url" type="button" id="pasteUrlBtn"
+                                title="Paste from clipboard">
+                                <i class="bi bi-clipboard"></i> Paste
+                            </button>
+                            <button class="btn btn-outline-secondary btn-check-url" type="button" id="checkUrlBtn">
+                                <i class="bi bi-check-circle"></i> Check
+                            </button>
+                        </div>
+                        <div id="urlStatus" class="url-status"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Genre *</label>
+                        <select class="form-select" id="stationGenreSelect">
+                            <option value="">Select genre...</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Language *</label>
+                        <select class="form-select" id="stationLanguageSelect">
+                            <option value="">Select language...</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" id="stationDescriptionInput" rows="3"
+                            placeholder="Station description (optional)"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Station image (optional)</label>
+                        <input type="file" class="form-control" id="stationImageInput" accept="image/*">
+                        <div class="image-preview" id="imagePreview">
+                            <i class="bi bi-image placeholder-icon"></i>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" id="submitStationBtn"><i class="bi bi-check-lg"></i> Add station</button>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="submitStationBtn"><i class="bi bi-check-lg"></i>
+                        Add station</button>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- toast container -->
-<div class="toast-container position-fixed bottom-0 end-0 p-3">
-    <div id="liveToast" class="toast align-items-center text-white border-0" role="alert" aria-live="assertive" aria-atomic="true" style="background:#1e1e2a;">
-        <div class="d-flex">
-            <div class="toast-body" id="toastMessage">Station added!</div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+    <!-- toast container -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="liveToast" class="toast align-items-center text-white border-0" role="alert" aria-live="assertive"
+            aria-atomic="true" style="background:#1e1e2a;">
+            <div class="d-flex">
+                <div class="toast-body" id="toastMessage">Station added!</div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
         </div>
     </div>
-</div>
 
-<!-- Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
-<!-- ========== MAIN JAVASCRIPT ========== -->
-<script>
-    (function() {
-        'use strict';
-
-        const API_BASE = 'http://localhost:8080';
-        const CACHE_KEY_GENRES = 'radiowave_genres';
-        const CACHE_KEY_LANGUAGES = 'radiowave_languages';
-        const CACHE_TTL = 7 * 24 * 60 * 60 * 1000;
-
-        // ---- Session management ----
-        function getOrCreateSessionId() {
-            let sessionId = localStorage.getItem('radioSession');
-            if (!sessionId) {
-                sessionId = 'session-' + Date.now() + '-' + Math.random().toString(36).substring(2, 8);
-                localStorage.setItem('radioSession', sessionId);
-                console.log('🆕 New session created:', sessionId);
-            } else {
-                console.log('♻️ Existing session found:', sessionId);
-            }
-            return sessionId;
-        }
-
-        // Create session immediately when script loads
-        const SESSION_ID = getOrCreateSessionId();
-
-        // ---- state ----
-        let currentStationId = null;
-        let audioElement = null;
-        let isPlaying = false;
-
-        // Home page state
-        let homeStations = [];
-        let homePage = 0;
-        let homeTotal = 0;
-        let homeFilter = 'famous';
-
-        // Search page state
-        let searchPageNum = 0;
-        let searchResults = [];
-        let searchTotal = 0;
-
-        // URL validation state - track the validated URL
-        let validatedUrl = null;
-        let urlValid = false;
-        let urlChecking = false;
-
-        const LIMIT = 12;
-        let genres = [];
-        let languages = [];
-        let genreMap = {};
-        let languageMap = {};
-
-        // DOM refs
-        const mainPage = document.getElementById('mainPage');
-        const searchPage = document.getElementById('searchPage');
-        const mainPageLink = document.getElementById('mainPageLink');
-        const searchPageLink = document.getElementById('searchPageLink');
-
-        const grid = document.getElementById('stationGrid');
-        const searchGrid = document.getElementById('searchStationGrid');
-        const searchInput = document.getElementById('searchInput');
-        const genreFilter = document.getElementById('genreFilter');
-        const languageFilter = document.getElementById('languageFilter');
-        const searchBtn = document.getElementById('searchBtn');
-        const clearSearchBtn = document.getElementById('clearSearchBtn');
-
-        const prevPageBtn = document.getElementById('prevPageBtn');
-        const nextPageBtn = document.getElementById('nextPageBtn');
-        const pageInfo = document.getElementById('pageInfo');
-        const prevPageItem = document.getElementById('prevPageItem');
-        const nextPageItem = document.getElementById('nextPageItem');
-
-        const searchPrevBtn = document.getElementById('searchPrevBtn');
-        const searchNextBtn = document.getElementById('searchNextBtn');
-        const searchPageInfo = document.getElementById('searchPageInfo');
-        const searchPrevPage = document.getElementById('searchPrevPage');
-        const searchNextPage = document.getElementById('searchNextPage');
-
-        const currentStationName = document.getElementById('currentStationName');
-        const playPauseBtn = document.getElementById('playPauseBtn');
-        const stopBtn = document.getElementById('stopBtn');
-        const volumeSlider = document.getElementById('volumeSlider');
-        const submitStationBtn = document.getElementById('submitStationBtn');
-        const checkUrlBtn = document.getElementById('checkUrlBtn');
-        const pasteUrlBtn = document.getElementById('pasteUrlBtn');
-        const urlStatus = document.getElementById('urlStatus');
-
-        // Add station modal fields
-        const stationNameInput = document.getElementById('stationNameInput');
-        const stationUrlInput = document.getElementById('stationUrlInput');
-        const stationGenreSelect = document.getElementById('stationGenreSelect');
-        const stationLanguageSelect = document.getElementById('stationLanguageSelect');
-        const stationDescriptionInput = document.getElementById('stationDescriptionInput');
-        const stationImageInput = document.getElementById('stationImageInput');
-        const imagePreview = document.getElementById('imagePreview');
-
-        const toastEl = document.getElementById('liveToast');
-        const toastMessage = document.getElementById('toastMessage');
-        const toast = new bootstrap.Toast(toastEl, { delay: 3000 });
-        const filterLabel = document.getElementById('filterLabel');
-
-        // ---- Caching ----
-        function getCachedData(key) {
-            try {
-                const raw = localStorage.getItem(key);
-                if (!raw) return null;
-                const data = JSON.parse(raw);
-                if (Date.now() - data.timestamp > CACHE_TTL) {
-                    localStorage.removeItem(key);
-                    return null;
-                }
-                return data.value;
-            } catch (e) { return null; }
-        }
-
-        function setCachedData(key, value) {
-            try {
-                localStorage.setItem(key, JSON.stringify({ timestamp: Date.now(), value }));
-            } catch (e) { /* ignore */ }
-        }
-
-        function escapeHtml(text) {
-            if (!text) return '';
-            return String(text).replace(/[&<>"]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[m] || m));
-        }
-
-        function showToast(msg) {
-            toastMessage.textContent = msg;
-            toast.show();
-        }
-
-        // ---- Paste functionality ----
-        async function pasteFromClipboard() {
-            try {
-                const text = await navigator.clipboard.readText();
-                if (text) {
-                    stationUrlInput.value = text;
-                    // Reset validation state when pasting
-                    resetValidationState();
-                    // Trigger input event to auto-check
-                    stationUrlInput.dispatchEvent(new Event('input'));
-                    showToast('URL pasted successfully!');
-                }
-            } catch (err) {
-                try {
-                    const pasteTarget = document.createElement('textarea');
-                    document.body.appendChild(pasteTarget);
-                    pasteTarget.focus();
-                    document.execCommand('paste');
-                    const pastedText = pasteTarget.value;
-                    document.body.removeChild(pasteTarget);
-                    if (pastedText) {
-                        stationUrlInput.value = pastedText;
-                        resetValidationState();
-                        stationUrlInput.dispatchEvent(new Event('input'));
-                        showToast('URL pasted successfully!');
-                    }
-                } catch (fallbackErr) {
-                    showToast('Unable to paste. Please use Ctrl+V (Cmd+V on Mac).');
-                }
-            }
-        }
-
-        // ---- Reset validation state ----
-        function resetValidationState() {
-            validatedUrl = null;
-            urlValid = false;
-            urlChecking = false;
-            urlStatus.textContent = '';
-            urlStatus.className = 'url-status';
-            stationUrlInput.className = 'form-control';
-        }
-
-        // ---- SIMPLIFIED URL VALIDATION ----
-        async function validateStreamUrl(url) {
-            if (!url || !url.trim()) {
-                urlStatus.textContent = 'Please enter a URL.';
-                urlStatus.className = 'url-status invalid';
-                urlValid = false;
-                validatedUrl = null;
-                stationUrlInput.classList.remove('url-valid', 'url-invalid', 'url-checking');
-                return false;
-            }
-
-            urlChecking = true;
-            urlValid = false;
-            validatedUrl = null;
-            urlStatus.textContent = 'Checking stream...';
-            urlStatus.className = 'url-status checking';
-            stationUrlInput.className = 'form-control url-checking';
-
-            return new Promise((resolve) => {
-                const testAudio = new Audio();
-                testAudio.crossOrigin = 'anonymous';
-                testAudio.src = url;
-
-                const timeoutId = setTimeout(() => {
-                    testAudio.removeEventListener('loadedmetadata', onSuccess);
-                    testAudio.removeEventListener('error', onError);
-                    testAudio.src = '';
-                    urlChecking = false;
-                    urlValid = false;
-                    validatedUrl = null;
-                    urlStatus.textContent = '❌ Connection timeout. Stream is slow or unavailable.';
-                    urlStatus.className = 'url-status invalid';
-                    stationUrlInput.className = 'form-control url-invalid';
-                    resolve(false);
-                }, 15000);
-
-                function onSuccess() {
-                    clearTimeout(timeoutId);
-                    testAudio.removeEventListener('loadedmetadata', onSuccess);
-                    testAudio.removeEventListener('error', onError);
-                    testAudio.src = '';
-                    urlChecking = false;
-                    urlValid = true;
-                    validatedUrl = url;
-                    urlStatus.textContent = '✅ Stream is valid and can play!';
-                    urlStatus.className = 'url-status valid';
-                    stationUrlInput.className = 'form-control url-valid';
-                    resolve(true);
-                }
-
-                function onError() {
-                    clearTimeout(timeoutId);
-                    testAudio.removeEventListener('loadedmetadata', onSuccess);
-                    testAudio.removeEventListener('error', onError);
-                    testAudio.src = '';
-                    urlChecking = false;
-                    urlValid = false;
-                    validatedUrl = null;
-                    urlStatus.textContent = '❌ Cannot play this stream. Please check the URL.';
-                    urlStatus.className = 'url-status invalid';
-                    stationUrlInput.className = 'form-control url-invalid';
-                    resolve(false);
-                }
-
-                testAudio.addEventListener('loadedmetadata', onSuccess);
-                testAudio.addEventListener('error', onError);
-                testAudio.load();
-            });
-        }
-
-        // ---- API ----
-        async function fetchGenres() {
-            const cached = getCachedData(CACHE_KEY_GENRES);
-            if (cached) {
-                genres = cached;
-                buildGenreMap();
-                populateGenreFilter();
-                populateGenreSelect();
-                return;
-            }
-            try {
-                const res = await fetch(`${API_BASE}/genres`);
-                if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                const data = await res.json();
-                genres = data.genres || [];
-                setCachedData(CACHE_KEY_GENRES, genres);
-                buildGenreMap();
-                populateGenreFilter();
-                populateGenreSelect();
-            } catch (e) {
-                console.warn('Genres fallback:', e);
-                genres = [
-                    { id: 'rock-id', name: 'rock' },
-                    { id: 'pop-id', name: 'pop' },
-                    { id: 'jazz-id', name: 'jazz' },
-                    { id: 'classical-id', name: 'classical' },
-                    { id: 'electronic-id', name: 'electronic' },
-                    { id: 'talk-id', name: 'talk' },
-                    { id: 'indie-id', name: 'indie' },
-                    { id: 'ambient-id', name: 'ambient' },
-                    { id: 'folk-id', name: 'folk' },
-                ];
-                buildGenreMap();
-                populateGenreFilter();
-                populateGenreSelect();
-            }
-        }
-
-        async function fetchLanguages() {
-            const cached = getCachedData(CACHE_KEY_LANGUAGES);
-            if (cached) {
-                languages = cached;
-                buildLanguageMap();
-                populateLanguageFilter();
-                populateLanguageSelect();
-                return;
-            }
-            try {
-                const res = await fetch(`${API_BASE}/languages`);
-                if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                const data = await res.json();
-                languages = data.languages || [];
-                setCachedData(CACHE_KEY_LANGUAGES, languages);
-                buildLanguageMap();
-                populateLanguageFilter();
-                populateLanguageSelect();
-            } catch (e) {
-                console.warn('Languages fallback:', e);
-                languages = [
-                    { id: 'en-id', name: 'English' },
-                    { id: 'ru-id', name: 'Russian' },
-                    { id: 'fr-id', name: 'French' },
-                    { id: 'de-id', name: 'German' },
-                    { id: 'es-id', name: 'Spanish' },
-                    { id: 'ja-id', name: 'Japanese' },
-                ];
-                buildLanguageMap();
-                populateLanguageFilter();
-                populateLanguageSelect();
-            }
-        }
-
-        function buildGenreMap() {
-            genreMap = {};
-            genres.forEach(g => { genreMap[g.name.toLowerCase()] = g.id; });
-        }
-
-        function buildLanguageMap() {
-            languageMap = {};
-            languages.forEach(l => { languageMap[l.name.toLowerCase()] = l.id; });
-        }
-
-        function populateGenreFilter() {
-            const val = genreFilter.value;
-            genreFilter.innerHTML = '<option value="">Genre</option>';
-            genres.forEach(g => {
-                const opt = document.createElement('option');
-                opt.value = g.id;
-                opt.textContent = g.name;
-                genreFilter.appendChild(opt);
-            });
-            if (val) genreFilter.value = val;
-        }
-
-        function populateLanguageFilter() {
-            const val = languageFilter.value;
-            languageFilter.innerHTML = '<option value="">Language</option>';
-            languages.forEach(l => {
-                const opt = document.createElement('option');
-                opt.value = l.id;
-                opt.textContent = l.name;
-                languageFilter.appendChild(opt);
-            });
-            if (val) languageFilter.value = val;
-        }
-
-        function populateGenreSelect() {
-            const val = stationGenreSelect.value;
-            stationGenreSelect.innerHTML = '<option value="">Select genre...</option>';
-            genres.forEach(g => {
-                const opt = document.createElement('option');
-                opt.value = g.id;
-                opt.textContent = g.name;
-                stationGenreSelect.appendChild(opt);
-            });
-            if (val) stationGenreSelect.value = val;
-        }
-
-        function populateLanguageSelect() {
-            const val = stationLanguageSelect.value;
-            stationLanguageSelect.innerHTML = '<option value="">Select language...</option>';
-            languages.forEach(l => {
-                const opt = document.createElement('option');
-                opt.value = l.id;
-                opt.textContent = l.name;
-                stationLanguageSelect.appendChild(opt);
-            });
-            if (val) stationLanguageSelect.value = val;
-        }
-
-        function getGenreId(name) {
-            return genreMap[name.toLowerCase()] || name;
-        }
-
-        function getLanguageId(name) {
-            return languageMap[name.toLowerCase()] || name;
-        }
-
-        // ---- API calls ----
-        async function fetchHomeStations() {
-            const params = { limit: LIMIT, offset: homePage * LIMIT };
-
-            if (homeFilter === 'famous') {
-                // Famous radio - just fetch all stations
-            } else {
-                const genreId = getGenreId(homeFilter);
-                if (genreId) params.genreId = genreId;
-            }
-
-            const query = new URLSearchParams(params);
-            try {
-                const res = await fetch(`${API_BASE}/stations?${query}`);
-                if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                const data = await res.json();
-                homeStations = data.stations || [];
-                homeTotal = data.pagination?.total || data.total || 0;
-                renderHomePage();
-            } catch (e) {
-                console.error('Home fetch error:', e);
-                showToast('Failed to load stations.');
-                homeStations = [];
-                homeTotal = 0;
-                renderHomePage();
-            }
-        }
-
-        async function fetchSearchStations() {
-            const params = { limit: LIMIT, offset: searchPageNum * LIMIT };
-            const search = searchInput.value.trim();
-            const genreId = genreFilter.value;
-            const languageId = languageFilter.value;
-            if (search) params.search = search;
-            if (genreId) params.genreId = genreId;
-            if (languageId) params.languageId = languageId;
-
-            const query = new URLSearchParams(params);
-            try {
-                const res = await fetch(`${API_BASE}/stations?${query}`);
-                if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                const data = await res.json();
-                searchResults = data.stations || [];
-                searchTotal = data.pagination?.total || data.total || 0;
-                renderSearchPage();
-            } catch (e) {
-                console.error('Search error:', e);
-                searchResults = [];
-                searchTotal = 0;
-                renderSearchPage();
-            }
-        }
-
-        async function createStation(name, url, genreId, languageId, description, imageData) {
-            const payload = { name, url, genreId, languageId };
-            if (description) payload.description = description;
-
-            try {
-                const res = await fetch(`${API_BASE}/stations`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Session-Id': SESSION_ID
-                    },
-                    body: JSON.stringify(payload)
-                });
-                if (!res.ok) {
-                    const err = await res.json();
-                    throw new Error(err.error || `HTTP ${res.status}`);
-                }
-                const data = await res.json();
-                if (imageData && data.id) {
-                    try {
-                        const blob = dataURLtoBlob(imageData);
-                        const formData = new FormData();
-                        formData.append('file', blob, 'icon.png');
-                        await fetch(`${API_BASE}/stations/${data.id}/icon`, {
-                            method: 'POST',
-                            headers: {
-                                'X-Session-Id': SESSION_ID
-                            },
-                            body: formData
-                        });
-                    } catch (iconErr) { console.warn('Icon upload failed:', iconErr); }
-                }
-                showToast(`Station "${name}" added!`);
-                // Refresh current page
-                if (mainPage.classList.contains('active')) {
-                    fetchHomeStations();
-                } else {
-                    fetchSearchStations();
-                }
-                return true;
-            } catch (e) {
-                showToast(`Error: ${e.message}`);
-                return false;
-            }
-        }
-
-        function dataURLtoBlob(dataURL) {
-            const arr = dataURL.split(',');
-            const mime = arr[0].match(/:(.*?);/)[1];
-            const bstr = atob(arr[1]);
-            let n = bstr.length;
-            const u8arr = new Uint8Array(n);
-            while (n--) u8arr[n] = bstr.charCodeAt(n);
-            return new Blob([u8arr], { type: mime });
-        }
-
-        // ---- Rendering ----
-        function renderHomePage() {
-            const start = homePage * LIMIT;
-            const end = Math.min(start + LIMIT, homeStations.length);
-            const items = homeStations.slice(start, end);
-
-            grid.innerHTML = '';
-            if (items.length === 0) {
-                grid.innerHTML = `<div class="text-center text-secondary py-5" style="grid-column:1/-1;">No stations found</div>`;
-            } else {
-                items.forEach(st => renderCard(grid, st));
-            }
-
-            const totalPages = Math.ceil(homeTotal / LIMIT) || 1;
-            pageInfo.textContent = `${homePage+1} / ${totalPages}`;
-            prevPageItem.classList.toggle('disabled', homePage === 0);
-            nextPageItem.classList.toggle('disabled', homePage >= totalPages - 1);
-        }
-
-        function renderSearchPage() {
-            const start = searchPageNum * LIMIT;
-            const end = Math.min(start + LIMIT, searchResults.length);
-            const items = searchResults.slice(start, end);
-
-            searchGrid.innerHTML = '';
-            if (items.length === 0) {
-                searchGrid.innerHTML = `<div class="text-center text-secondary py-5" style="grid-column:1/-1;">No stations found</div>`;
-            } else {
-                items.forEach(st => renderCard(searchGrid, st));
-            }
-
-            const totalPages = Math.ceil(searchTotal / LIMIT) || 1;
-            searchPageInfo.textContent = `${searchPageNum+1} / ${totalPages}`;
-            searchPrevPage.classList.toggle('disabled', searchPageNum === 0);
-            searchNextPage.classList.toggle('disabled', searchPageNum >= totalPages - 1);
-        }
-
-        function renderCard(container, st) {
-            const card = document.createElement('div');
-            card.className = `station-card ${currentStationId === st.id ? 'active' : ''}`;
-            card.dataset.id = st.id;
-            let artworkHtml = st.icon ? `<img src="${st.icon}" alt="${escapeHtml(st.name)}">` : `<i class="bi bi-radio"></i>`;
-            const genreName = genres.find(g => g.id === st.genre)?.name || st.genre || 'mixed';
-            const langName = languages.find(l => l.id === st.language)?.name || st.language || 'world';
-            card.innerHTML = `
-                <div class="artwork">${artworkHtml}</div>
-                <div class="station-name">${escapeHtml(st.name)}</div>
-                <span class="genre-tag">${escapeHtml(genreName)}</span>
-                <div class="country-flag"><i class="bi bi-geo-alt"></i> ${escapeHtml(langName)}</div>
-                <div class="play-indicator">${currentStationId === st.id && isPlaying ? '🔊 playing' : ''}</div>
-            `;
-            card.addEventListener('click', () => playStation(st.id));
-            container.appendChild(card);
-        }
-
-        // ---- Player ----
-        function getStationById(id) {
-            let st = homeStations.find(s => s.id === id);
-            if (!st) st = searchResults.find(s => s.id === id);
-            return st;
-        }
-
-        function playStation(stationId) {
-            const station = getStationById(stationId);
-            if (!station) return;
-
-            if (currentStationId === stationId && audioElement && isPlaying) {
-                pauseAudio();
-                return;
-            }
-
-            if (audioElement) {
-                audioElement.pause();
-                audioElement.src = '';
-                audioElement = null;
-                isPlaying = false;
-            }
-
-            const audio = new Audio(station.url);
-            audio.volume = parseFloat(volumeSlider.value);
-            audio.crossOrigin = 'anonymous';
-            audio.addEventListener('error', () => {
-                showToast('Could not load stream.');
-                resetPlayerUI();
-            });
-
-            audioElement = audio;
-            currentStationId = station.id;
-            currentStationName.textContent = station.name;
-            playPauseBtn.innerHTML = '<i class="bi bi-pause-fill"></i>';
-            isPlaying = true;
-            audio.play().catch(() => {});
-
-            if (mainPage.classList.contains('active')) renderHomePage();
-            else renderSearchPage();
-
-            fetch(`${API_BASE}/stations/${stationId}/play`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Session-Id': SESSION_ID
-                },
-                body: JSON.stringify({ session_id: SESSION_ID })
-            }).catch(() => {});
-        }
-
-        function pauseAudio() {
-            if (audioElement) {
-                audioElement.pause();
-                isPlaying = false;
-                playPauseBtn.innerHTML = '<i class="bi bi-play-fill"></i>';
-                if (mainPage.classList.contains('active')) renderHomePage();
-                else renderSearchPage();
-            }
-        }
-
-        function stopAudio() {
-            if (audioElement) {
-                audioElement.pause();
-                audioElement.src = '';
-                audioElement = null;
-                isPlaying = false;
-                currentStationId = null;
-                currentStationName.textContent = 'Select a station';
-                playPauseBtn.innerHTML = '<i class="bi bi-play-fill"></i>';
-                if (mainPage.classList.contains('active')) renderHomePage();
-                else renderSearchPage();
-            }
-        }
-
-        function resetPlayerUI() {
-            if (audioElement) {
-                audioElement.pause();
-                audioElement.src = '';
-                audioElement = null;
-            }
-            isPlaying = false;
-            currentStationId = null;
-            currentStationName.textContent = 'Select a station';
-            playPauseBtn.innerHTML = '<i class="bi bi-play-fill"></i>';
-            if (mainPage.classList.contains('active')) renderHomePage();
-            else renderSearchPage();
-        }
-
-        function togglePlayPause() {
-            if (!audioElement || !currentStationId) {
-                const first = mainPage.classList.contains('active') ? homeStations[0] : searchResults[0];
-                if (first) playStation(first.id);
-                return;
-            }
-            if (isPlaying) pauseAudio();
-            else {
-                if (audioElement) {
-                    audioElement.play().catch(() => {});
-                    isPlaying = true;
-                    playPauseBtn.innerHTML = '<i class="bi bi-pause-fill"></i>';
-                    if (mainPage.classList.contains('active')) renderHomePage();
-                    else renderSearchPage();
-                }
-            }
-        }
-
-        // ---- Navigation ----
-        function showMainPage() {
-            mainPage.classList.add('active');
-            searchPage.classList.remove('active');
-            mainPageLink.classList.add('active');
-            searchPageLink.classList.remove('active');
-            fetchHomeStations();
-        }
-
-        function showSearchPage() {
-            mainPage.classList.remove('active');
-            searchPage.classList.add('active');
-            mainPageLink.classList.remove('active');
-            searchPageLink.classList.add('active');
-            fetchSearchStations();
-        }
-
-        // ---- Event binding ----
-        // Home filter buttons
-        document.querySelectorAll('#mainPage .filter-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                document.querySelectorAll('#mainPage .filter-btn').forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-                homeFilter = this.dataset.filter;
-                homePage = 0;
-                const label = homeFilter === 'famous' ? '⭐ Famous Radio' : homeFilter.charAt(0).toUpperCase() + homeFilter.slice(1);
-                filterLabel.textContent = label;
-                fetchHomeStations();
-            });
-        });
-
-        // Page navigation
-        mainPageLink.addEventListener('click', (e) => { e.preventDefault(); showMainPage(); });
-        searchPageLink.addEventListener('click', (e) => { e.preventDefault(); showSearchPage(); });
-
-        // Home pagination
-        prevPageBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            if (homePage > 0) { homePage--; fetchHomeStations(); }
-        });
-        nextPageBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            const totalPages = Math.ceil(homeTotal / LIMIT);
-            if (homePage < totalPages - 1) { homePage++; fetchHomeStations(); }
-        });
-
-        // Search pagination
-        searchPrevBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            if (searchPageNum > 0) { searchPageNum--; fetchSearchStations(); }
-        });
-        searchNextBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            const totalPages = Math.ceil(searchTotal / LIMIT);
-            if (searchPageNum < totalPages - 1) { searchPageNum++; fetchSearchStations(); }
-        });
-
-        // Search controls
-        searchBtn.addEventListener('click', () => { searchPageNum = 0; fetchSearchStations(); });
-        clearSearchBtn.addEventListener('click', () => {
-            searchInput.value = '';
-            genreFilter.value = '';
-            languageFilter.value = '';
-            searchPageNum = 0;
-            fetchSearchStations();
-        });
-        searchInput.addEventListener('keyup', (e) => { if (e.key === 'Enter') { searchPageNum = 0; fetchSearchStations(); } });
-        genreFilter.addEventListener('change', () => { searchPageNum = 0; fetchSearchStations(); });
-        languageFilter.addEventListener('change', () => { searchPageNum = 0; fetchSearchStations(); });
-
-        // Player
-        playPauseBtn.addEventListener('click', togglePlayPause);
-        stopBtn.addEventListener('click', stopAudio);
-        volumeSlider.addEventListener('input', function() {
-            if (audioElement) audioElement.volume = parseFloat(this.value);
-        });
-
-        // Paste button
-        pasteUrlBtn.addEventListener('click', pasteFromClipboard);
-
-        // URL Check button
-        checkUrlBtn.addEventListener('click', async function() {
-            const url = stationUrlInput.value.trim();
-            if (!url) {
-                urlStatus.textContent = 'Please enter a URL first.';
-                urlStatus.className = 'url-status invalid';
-                urlValid = false;
-                validatedUrl = null;
-                stationUrlInput.className = 'form-control url-invalid';
-                return;
-            }
-            await validateStreamUrl(url);
-        });
-
-        // Auto-check on URL input change - reset validation when URL changes
-        let urlCheckTimeout = null;
-        stationUrlInput.addEventListener('input', function() {
-            clearTimeout(urlCheckTimeout);
-            const currentUrl = this.value.trim();
-            const previousUrl = validatedUrl;
-
-            // If the URL changed from what was validated, reset validation state
-            if (previousUrl !== null && currentUrl !== previousUrl) {
-                resetValidationState();
-            }
-
-            // If URL is empty, just reset
-            if (!currentUrl) {
-                resetValidationState();
-                return;
-            }
-
-            // Auto-check with debounce
-            urlCheckTimeout = setTimeout(async () => {
-                await validateStreamUrl(currentUrl);
-            }, 800);
-        });
-
-        // Add station
-        submitStationBtn.addEventListener('click', async function() {
-            const name = stationNameInput.value.trim();
-            const url = stationUrlInput.value.trim();
-            const genreId = stationGenreSelect.value;
-            const languageId = stationLanguageSelect.value;
-            const description = stationDescriptionInput.value.trim();
-            let imageData = null;
-            const previewImg = imagePreview.querySelector('img');
-            if (previewImg) imageData = previewImg.src;
-
-            if (!name) { showToast('Station name is required.'); return; }
-            if (!url) { showToast('Stream URL is required.'); return; }
-            if (!genreId) { showToast('Please select a genre.'); return; }
-            if (!languageId) { showToast('Please select a language.'); return; }
-
-            // Check if the current URL matches the validated URL
-            if (!urlValid || validatedUrl !== url) {
-                // Try to validate the URL first
-                const isValid = await validateStreamUrl(url);
-                if (!isValid) {
-                    showToast('Please provide a valid stream URL.');
-                    return;
-                }
-            }
-
-            // Double-check validation state
-            if (!urlValid || validatedUrl !== url) {
-                showToast('Please wait for URL validation to complete.');
-                return;
-            }
-
-            createStation(name, url, genreId, languageId, description, imageData)
-                .then(ok => {
-                    if (ok) {
-                        const modal = bootstrap.Modal.getInstance(document.getElementById('addStationModal'));
-                        modal.hide();
-                        stationNameInput.value = '';
-                        stationUrlInput.value = '';
-                        stationGenreSelect.value = '';
-                        stationLanguageSelect.value = '';
-                        stationDescriptionInput.value = '';
-                        stationImageInput.value = '';
-                        imagePreview.innerHTML = `<i class="bi bi-image placeholder-icon"></i>`;
-                        resetValidationState();
-                    }
-                });
-        });
-
-        stationImageInput.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (!file) { imagePreview.innerHTML = `<i class="bi bi-image placeholder-icon"></i>`; return; }
-            const reader = new FileReader();
-            reader.onload = (ev) => { imagePreview.innerHTML = `<img src="${ev.target.result}" alt="preview">`; };
-            reader.readAsDataURL(file);
-        });
-
-        // Reset modal fields when opened
-        document.getElementById('addStationModal').addEventListener('show.bs.modal', function() {
-            stationNameInput.value = '';
-            stationUrlInput.value = '';
-            stationGenreSelect.value = '';
-            stationLanguageSelect.value = '';
-            stationDescriptionInput.value = '';
-            stationImageInput.value = '';
-            imagePreview.innerHTML = `<i class="bi bi-image placeholder-icon"></i>`;
-            resetValidationState();
-        });
-
-        document.addEventListener('keydown', (e) => {
-            if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
-            if (e.code === 'Space') { e.preventDefault(); togglePlayPause(); }
-        });
-
-        // ---- Init ----
-        async function init() {
-            await fetchGenres();
-            await fetchLanguages();
-            showMainPage();
-        }
-        init();
-
-    })();
-</script>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- ========== MAIN JAVASCRIPT ========== -->
+    <script src="script.js"></script>
 </body>
+
 </html>
