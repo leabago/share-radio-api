@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/leabago/share-radio/adder/internal/controller/http_api/middleware"
 	"github.com/leabago/share-radio/adder/pkg/jwt"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -20,7 +19,7 @@ func newTestApp(t *testing.T) (*fiber.App, *jwt.Manager) {
 	jwtManager := jwt.New("test-secret", time.Hour)
 
 	app := fiber.New()
-	app.Use(middleware.Auth(jwtManager))
+	app.Use(Auth(jwtManager))
 	app.Get("/test", func(c *fiber.Ctx) error {
 		userID, ok := c.Locals("userID").(string)
 		if !ok {

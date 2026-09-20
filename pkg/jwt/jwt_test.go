@@ -4,7 +4,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/leabago/share-radio/adder/pkg/jwt"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -12,7 +11,7 @@ import (
 func TestJWT_GenerateAndParse(t *testing.T) {
 	t.Parallel()
 
-	j := jwt.New("test-secret", time.Hour)
+	j := New("test-secret", time.Hour)
 
 	token, err := j.GenerateToken("user-123")
 	require.NoError(t, err)
@@ -26,7 +25,7 @@ func TestJWT_GenerateAndParse(t *testing.T) {
 func TestJWT_ParseToken_Invalid(t *testing.T) {
 	t.Parallel()
 
-	j := jwt.New("test-secret", time.Hour)
+	j := New("test-secret", time.Hour)
 
 	_, err := j.ParseToken("invalid-token")
 	require.Error(t, err)
@@ -35,8 +34,8 @@ func TestJWT_ParseToken_Invalid(t *testing.T) {
 func TestJWT_ParseToken_WrongSecret(t *testing.T) {
 	t.Parallel()
 
-	j1 := jwt.New("secret-1", time.Hour)
-	j2 := jwt.New("secret-2", time.Hour)
+	j1 := New("secret-1", time.Hour)
+	j2 := New("secret-2", time.Hour)
 
 	token, err := j1.GenerateToken("user-123")
 	require.NoError(t, err)
@@ -48,7 +47,7 @@ func TestJWT_ParseToken_WrongSecret(t *testing.T) {
 func TestJWT_ParseToken_Expired(t *testing.T) {
 	t.Parallel()
 
-	j := jwt.New("test-secret", -time.Hour)
+	j := New("test-secret", -time.Hour)
 
 	token, err := j.GenerateToken("user-123")
 	require.NoError(t, err)

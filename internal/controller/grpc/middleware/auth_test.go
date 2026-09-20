@@ -5,7 +5,6 @@ import (
 	"testing"
 	"time"
 
-	grpcmw "github.com/leabago/share-radio/adder/internal/controller/grpc/middleware"
 	"github.com/leabago/share-radio/adder/pkg/jwt"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -41,7 +40,7 @@ func runSkipAuthTest(t *testing.T, method string) {
 	t.Helper()
 
 	jwtMgr := newJWTManager(t)
-	interceptor := grpcmw.AuthInterceptor(jwtMgr)
+	interceptor := AuthInterceptor(jwtMgr)
 	info := &grpc.UnaryServerInfo{FullMethod: method}
 
 	called := false
@@ -72,7 +71,7 @@ func TestAuthInterceptor_MissingMetadata(t *testing.T) {
 	t.Parallel()
 
 	jwtMgr := newJWTManager(t)
-	interceptor := grpcmw.AuthInterceptor(jwtMgr)
+	interceptor := AuthInterceptor(jwtMgr)
 	info := &grpc.UnaryServerInfo{FullMethod: "/grpc.v1.TaskService/GetTask"}
 
 	capture := &ctxCapture{}
@@ -92,7 +91,7 @@ func TestAuthInterceptor_MissingAuthorizationToken(t *testing.T) {
 	t.Parallel()
 
 	jwtMgr := newJWTManager(t)
-	interceptor := grpcmw.AuthInterceptor(jwtMgr)
+	interceptor := AuthInterceptor(jwtMgr)
 	info := &grpc.UnaryServerInfo{FullMethod: "/grpc.v1.TaskService/GetTask"}
 
 	md := metadata.New(map[string]string{"other-key": "value"})
@@ -115,7 +114,7 @@ func TestAuthInterceptor_InvalidToken(t *testing.T) {
 	t.Parallel()
 
 	jwtMgr := newJWTManager(t)
-	interceptor := grpcmw.AuthInterceptor(jwtMgr)
+	interceptor := AuthInterceptor(jwtMgr)
 	info := &grpc.UnaryServerInfo{FullMethod: "/grpc.v1.TaskService/GetTask"}
 
 	md := metadata.Pairs("authorization", "invalid-token")
@@ -138,7 +137,7 @@ func TestAuthInterceptor_ValidToken(t *testing.T) {
 	t.Parallel()
 
 	jwtMgr := newJWTManager(t)
-	interceptor := grpcmw.AuthInterceptor(jwtMgr)
+	interceptor := AuthInterceptor(jwtMgr)
 	info := &grpc.UnaryServerInfo{FullMethod: "/grpc.v1.TaskService/GetTask"}
 
 	token, err := jwtMgr.GenerateToken("user-id-123")
@@ -154,7 +153,7 @@ func TestAuthInterceptor_ValidToken(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, respOK, resp)
 
-	userID, ok := grpcmw.UserIDFromContext(capture.ctx)
+	userID, ok := UserIDFromContext(capture.ctx)
 	assert.True(t, ok)
 	assert.Equal(t, "user-id-123", userID)
 }
@@ -163,7 +162,7 @@ func TestUserIDFromContext_WithValue(t *testing.T) {
 	t.Parallel()
 
 	jwtMgr := newJWTManager(t)
-	interceptor := grpcmw.AuthInterceptor(jwtMgr)
+	interceptor := AuthInterceptor(jwtMgr)
 	info := &grpc.UnaryServerInfo{FullMethod: "/grpc.v1.TaskService/GetTask"}
 
 	token, err := jwtMgr.GenerateToken("user-42")
@@ -177,7 +176,7 @@ func TestUserIDFromContext_WithValue(t *testing.T) {
 	_, err = interceptor(ctx, nil, info, capture.capturingHandler)
 	require.NoError(t, err)
 
-	userID, ok := grpcmw.UserIDFromContext(capture.ctx)
+	userID, ok := UserIDFromContext(capture.ctx)
 	assert.True(t, ok)
 	assert.Equal(t, "user-42", userID)
 }
@@ -185,7 +184,7 @@ func TestUserIDFromContext_WithValue(t *testing.T) {
 func TestUserIDFromContext_WithoutValue(t *testing.T) {
 	t.Parallel()
 
-	userID, ok := grpcmw.UserIDFromContext(t.Context())
+	userID, ok := UserIDFromContext(t.Context())
 	assert.False(t, ok)
 	assert.Empty(t, userID)
 }
